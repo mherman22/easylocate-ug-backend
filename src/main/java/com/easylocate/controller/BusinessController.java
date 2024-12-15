@@ -3,6 +3,7 @@ package com.easylocate.controller;
 import com.easylocate.model.Business;
 import com.easylocate.service.BusinessService;
 import com.easylocate.service.ImageUploadService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,30 +46,28 @@ public class BusinessController {
      * and an image file.
      *
      * @param image The image file uploaded for the business
-     * @param business The business data in JSON format
+     * @param businessJson The business data in JSON format
      * @return The created business entity with the image URL
      * @throws RuntimeException If there's an error processing the image upload
-     * <p>
-     * Example curl request:
-     * curl -X POST \
-     *   'http://localhost:8080/api/businesses' \
-     *   -H 'Content-Type: multipart/form-data' \
-     *   -F 'image=@/path/to/image.jpg' \
-     *   -F 'business={"name":"Business Name","websiteUrl":"http://example.com",...}'
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Business createBusiness(
-            @RequestPart("image") MultipartFile image,
-            @RequestPart("business") Business business) {
+            @RequestPart(value = "image", required = true) MultipartFile image,
+            @RequestPart(value = "business", required = true) String businessJson) {
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Business business = objectMapper.readValue(businessJson, Business.class);
+
             String imageUrl = imageUploadService.uploadImage(image);
             business.setImageUrl(imageUrl);
+
             return businessService.saveBusiness(business);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload image", e);
+            throw new RuntimeException("Failed to process request", e);
         }
     }
-    
+
+
     @PutMapping("/{id}")
     public ResponseEntity<Business> updateBusiness(@PathVariable Long id, @RequestBody Business business) {
         return businessService.getBusinessById(id)

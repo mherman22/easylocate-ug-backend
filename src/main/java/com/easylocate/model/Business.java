@@ -14,6 +14,7 @@ public class Business {
     private String imageUrl;
     private String websiteUrl;
     private String location;
+    private String category;
     
     @Column(length = 1000)
     private String about;
