@@ -1,0 +1,7 @@
+com/easylocate/EasylocateApplication.class
+com/easylocate/service/BusinessService.class
+com/easylocate/model/Business.class
+com/easylocate/config/WebConfig.class
+com/easylocate/controller/BusinessController.class
+com/easylocate/repository/BusinessRepository.class
+com/easylocate/service/ImageUploadService.class
