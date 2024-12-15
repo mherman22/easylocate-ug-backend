@@ -76,4 +76,4 @@ application-prod.properties
 *.trace.db
 
 # Environment variables
-.env 
+.env
