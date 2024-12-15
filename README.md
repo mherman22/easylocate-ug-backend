@@ -118,4 +118,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🤝 Contact
 
 - [@m_herman22](https://x.com/m_herman22)
-- Project Link: [https://github.com/mherman22/easylocate-ug-backend](https://github.com/yourusername/easylocate-ug-backend)
+- Project Link: [https://github.com/mherman22/easylocate-ug-backend](https://github.com/mherman22/easylocate-ug-backend)
