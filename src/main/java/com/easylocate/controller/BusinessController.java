@@ -1,6 +1,7 @@
 package com.easylocate.controller;
 
 import com.easylocate.model.Business;
+import com.easylocate.model.Category;
 import com.easylocate.service.BusinessService;
 import com.easylocate.service.ImageUploadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/businesses")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("unused")
 public class BusinessController {
     
     @Autowired
@@ -31,6 +33,15 @@ public class BusinessController {
     @GetMapping
     public List<Business> getAllBusinesses() {
         return businessService.getAllBusinesses();
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<Business>> getBusinessesByCategory(@PathVariable Long categoryId) {
+        List<Business> businesses = businessService.getBusinessesByCategory(categoryId);
+        if (businesses.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(businesses);
     }
     
     @GetMapping("/{id}")
@@ -87,4 +98,13 @@ public class BusinessController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-} 
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = businessService.getAllCategories();
+        if (categories.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(categories);
+    }
+}

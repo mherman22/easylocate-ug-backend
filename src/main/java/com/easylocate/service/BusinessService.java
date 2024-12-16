@@ -1,7 +1,11 @@
 package com.easylocate.service;
 
 import com.easylocate.model.Business;
+import com.easylocate.model.Category;
 import com.easylocate.repository.BusinessRepository;
+import com.easylocate.repository.CategoryRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +17,11 @@ public class BusinessService {
     
     @Autowired
     private BusinessRepository businessRepository;
+    
+    @Autowired
+    private CategoryRepository categoryRepository;
+    
+    private static final Logger logger = LoggerFactory.getLogger(BusinessService.class);
     
     public List<Business> getAllBusinesses() {
         return businessRepository.findAll();
@@ -29,4 +38,16 @@ public class BusinessService {
     public void deleteBusiness(Long id) {
         businessRepository.deleteById(id);
     }
-} 
+    
+    public List<Business> getBusinessesByCategory(Long categoryId) {
+        logger.info("Searching for businesses with category id: {}", categoryId);
+        List<Business> businesses = businessRepository.findByCategoryId(categoryId);
+        logger.info("Found {} businesses", businesses.size());
+        return businesses;
+    }
+    
+    public List<Category> getAllCategories() {
+        logger.info("Fetching all categories");
+        return categoryRepository.findAll();
+    }
+}
