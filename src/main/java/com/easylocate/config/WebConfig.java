@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
     
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
-    
+
     /**
      * Configures the resource handlers for serving static files.
      * Maps the /images/** URL pattern to the physical file location where images are stored.

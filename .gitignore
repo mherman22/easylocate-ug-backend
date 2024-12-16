@@ -66,6 +66,8 @@ Desktop.ini
 
 # Application specific
 uploads/
+icons/
+src/main/resources/data.sql
 application-local.properties
 application-dev.properties
 application-prod.properties
