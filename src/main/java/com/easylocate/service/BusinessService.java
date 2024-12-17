@@ -30,8 +30,13 @@ public class BusinessService {
     public Optional<Business> getBusinessById(Long id) {
         return businessRepository.findById(id);
     }
-    
+
     public Business saveBusiness(Business business) {
+        if (business.getCategory() != null && business.getCategory().getId() != null) {
+            Category fullCategory = categoryRepository.findById(business.getCategory().getId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            business.setCategory(fullCategory);
+        }
         return businessRepository.save(business);
     }
     
