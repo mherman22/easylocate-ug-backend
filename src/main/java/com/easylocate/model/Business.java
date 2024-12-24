@@ -11,8 +11,11 @@ public class Business {
     private Long id;
     
     private String name;
+
     private String imageUrl;
+
     private String websiteUrl;
+
     private String location;
     
     @ManyToOne
@@ -21,5 +24,6 @@ public class Business {
     
     @Column(length = 1000)
     private String about;
+
     private String contact;
 }

@@ -34,15 +34,6 @@ public class BusinessController {
     public List<Business> getAllBusinesses() {
         return businessService.getAllBusinesses();
     }
-
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Business>> getBusinessesByCategory(@PathVariable Long categoryId) {
-        List<Business> businesses = businessService.getBusinessesByCategory(categoryId);
-        if (businesses.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(businesses);
-    }
     
     @GetMapping("/{id}")
     public ResponseEntity<Business> getBusinessById(@PathVariable Long id) {
@@ -77,7 +68,6 @@ public class BusinessController {
             throw new RuntimeException("Failed to process request", e);
         }
     }
-
 
     @PutMapping("/{id}")
     public ResponseEntity<Business> updateBusiness(@PathVariable Long id, @RequestBody Business business) {

@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Configuration
+@SuppressWarnings("unused")
 public class FileStorageConfig implements CommandLineRunner {
 
     @Value("${file.upload-dir:uploads}")

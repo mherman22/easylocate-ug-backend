@@ -44,13 +44,6 @@ public class BusinessService {
         businessRepository.deleteById(id);
     }
     
-    public List<Business> getBusinessesByCategory(Long categoryId) {
-        logger.info("Searching for businesses with category id: {}", categoryId);
-        List<Business> businesses = businessRepository.findByCategoryId(categoryId);
-        logger.info("Found {} businesses", businesses.size());
-        return businesses;
-    }
-    
     public List<Category> getAllCategories() {
         logger.info("Fetching all categories");
         return categoryRepository.findAll();

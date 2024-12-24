@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * through a specific URL pattern.
  */
 @Configuration
+@SuppressWarnings("unused")
 public class WebConfig implements WebMvcConfigurer {
     
     @Value("${file.upload-dir:uploads}")
