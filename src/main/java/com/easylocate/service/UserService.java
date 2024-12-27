@@ -22,9 +22,10 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     @Autowired
+    @SuppressWarnings("unused")
     private UserRepository userRepository;
 
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
     public Optional<User> findUserById(@NonNull Long id) {
         return userRepository.findById(id);
