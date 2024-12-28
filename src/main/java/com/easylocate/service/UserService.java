@@ -3,7 +3,11 @@ package com.easylocate.service;
 import com.easylocate.model.User;
 import com.easylocate.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,6 +28,13 @@ public class UserService implements UserDetailsService {
     @Autowired
     @SuppressWarnings("unused")
     private UserRepository userRepository;
+
+    @Autowired
+    private JWTService jwtService;
+
+    @Autowired
+    @Lazy
+    private AuthenticationManager auth;
 
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
@@ -48,7 +59,7 @@ public class UserService implements UserDetailsService {
         boolean accountNonLocked = true;
 
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(), user.getPassword(), enabled, accountNonExpired,
+                user.getUsername(), user.getPassword(), enabled, accountNonExpired,
                 credentialsNonExpired, accountNonLocked, getAuthorities(Collections.singletonList("ROLE_USER")));
     }
 
@@ -58,5 +69,14 @@ public class UserService implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority(role));
         }
         return authorities;
+    }
+
+    public String verifyUser(User user) {
+        Authentication authentication = auth.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+        if (authentication.isAuthenticated()) {
+            return jwtService.generateJWToken(user.getUsername());
+        }
+
+        return "User not authenticated";
     }
 }
