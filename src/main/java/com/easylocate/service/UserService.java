@@ -14,12 +14,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -29,28 +34,22 @@ public class UserService implements UserDetailsService {
     @SuppressWarnings("unused")
     private UserRepository userRepository;
 
-    @Autowired
-    private JWTService jwtService;
-
-    @Autowired
-    @Lazy
-    private AuthenticationManager auth;
-
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
-
     public Optional<User> findUserById(@NonNull Long id) {
         return userRepository.findById(id);
     }
 
+    public Optional<User> findUserByUsername(String username) {
+        return userRepository.findUserByUsername(username);
+    }
+
     public User saveUser(@javax.validation.Valid User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findUserByUsername(username);
-        if (user == null) {
+        Optional<User> user = userRepository.findUserByUsername(username);
+        if (!user.isPresent()) {
             throw new UsernameNotFoundException("User with specified username: " + username + " doesn't exist");
         }
         boolean enabled = true;
@@ -59,7 +58,7 @@ public class UserService implements UserDetailsService {
         boolean accountNonLocked = true;
 
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(), user.getPassword(), enabled, accountNonExpired,
+                user.get().getUsername(), user.get().getPassword(), enabled, accountNonExpired,
                 credentialsNonExpired, accountNonLocked, getAuthorities(Collections.singletonList("ROLE_USER")));
     }
 
@@ -71,12 +70,35 @@ public class UserService implements UserDetailsService {
         return authorities;
     }
 
-    public String verifyUser(User user) {
-        Authentication authentication = auth.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateJWToken(user.getUsername());
-        }
+    public User processOAuth2User(OAuth2User oauth2User) {
+        String email = oauth2User.getAttribute("email");
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setFirstName("");
+                    newUser.setLastName("");
+                    newUser.setEmail(email);
+                    newUser.setUsername(generateUsernameFromEmail(Objects.requireNonNull(email)));
+                    newUser.setPassword("");
+                    return userRepository.save(newUser);
+                });
+    }
 
-        return "User not authenticated";
+    public User processOidcUser(OidcUser oidcUser) {
+        String email = oidcUser.getEmail();
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setFirstName("");
+                    newUser.setLastName("");
+                    newUser.setEmail(email);
+                    newUser.setUsername(generateUsernameFromEmail(email));
+                    newUser.setPassword("");
+                    return userRepository.save(newUser);
+                });
+    }
+
+    private String generateUsernameFromEmail(String email) {
+        return email.substring(0, email.indexOf("@"));
     }
 }

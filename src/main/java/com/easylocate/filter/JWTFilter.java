@@ -29,9 +29,11 @@ import java.io.IOException;
 public class JWTFilter extends OncePerRequestFilter {
 
     @Autowired
+    @SuppressWarnings("unused")
     private JWTService jwtService;
 
     @Autowired
+    @SuppressWarnings("unused")
     private ApplicationContext context;
 
     /**
@@ -49,22 +51,16 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
-        System.out.println("authenticationHeader: " + authenticationHeader);
-
         if (authenticationHeader != null && authenticationHeader.startsWith("Bearer ")) {
             token = authenticationHeader.substring(7);
-            System.out.println("token: " + token);
             username = jwtService.extractUsernameFromJWToken(token);
-            System.out.println("username from token: " + username);
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = context.getBean(UserService.class).loadUserByUsername(username);
-            System.out.println("User Details: " + userDetails);
             if (jwtService.validateToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
-                System.out.println("authenticationToken: " + authenticationToken);
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }

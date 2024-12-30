@@ -8,12 +8,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.web.SecurityFilterChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +56,20 @@ public class SecurityConfig {
         logger.info("Configuring SecurityFilterChain");
 
         return httpSecurity
-                .csrf().disable()
+                .csrf().disable() // Consider re-enabling and handling CSRF for stateless JWT tokens
                 .authorizeHttpRequests(authorize -> authorize
-                        .antMatchers("/api/user/register", "/api/user/login", "/h2-console/**", "/public/**").permitAll()
+                        .antMatchers("/api/user/register", "/api/user/login", "/h2-console/**", "/public/**", "/oauth2/**").permitAll()
                         .anyRequest().authenticated())
-                .headers(headers -> headers.frameOptions().disable())
+                .headers(headers -> headers.frameOptions().disable()) // Disable this only for development
                 .httpBasic()
                 .and()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/google")
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/login/oauth2/code/*"))
+                        .successHandler((request, response, authentication) ->
+                                response.sendRedirect("/oauth2/login-success"))
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -96,5 +109,28 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         logger.info("Setting up BCryptPasswordEncoder");
         return new BCryptPasswordEncoder(12);
+    }
+
+    @Bean
+    public ClientRegistrationRepository clientRegistrationRepository() {
+        return new InMemoryClientRegistrationRepository(this.googleClientRegistration());
+    }
+
+    private ClientRegistration googleClientRegistration() {
+        logger.info("Configuring Google Ouath2Login");
+        return ClientRegistration.withRegistrationId("google")
+                .clientId("41886049452-uim7vr46cu44522ilc8t30lhs8j91uhl.apps.googleusercontent.com")
+                .clientSecret("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")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .scope("openid", "profile", "email", "address", "phone")
+                .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
+                .tokenUri("https://www.googleapis.com/oauth2/v4/token")
+                .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
+                .userNameAttributeName(IdTokenClaimNames.SUB)
+                .jwkSetUri("https://www.googleapis.com/oauth2/v3/certs")
+                .clientName("Google")
+                .build();
     }
 }
